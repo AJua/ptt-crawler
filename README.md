@@ -2,7 +2,7 @@
 
 ## Installation
 
-```
+```sh
 # Install dependencies for ptt-crawler
 pip install -r requirements.txt 
 
