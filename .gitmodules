@@ -1,0 +1,3 @@
+[submodule "submodules/ptt-web-crawler"]
+	path = submodules/ptt-web-crawler
+	url = https://github.com/AJua/ptt-web-crawler.git
