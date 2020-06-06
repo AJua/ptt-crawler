@@ -1,8 +1,7 @@
+import json, glob, os
 from elasticsearch7 import Elasticsearch
 from datetime import datetime, timedelta
-import json
-import glob
-import os
+from geoip import geolite2
 
 es = Elasticsearch(
     [ os.environ.get('ELASTIC_HOST') ],
@@ -13,20 +12,36 @@ es = Elasticsearch(
 
 ELASTIC_INDEX = "ptt"
 
+mappings = {
+    "mappings": {
+        "properties": { "geo_location": { "type": "geo_point" } }
+    }
+}
+
+# ignore 400 index already exists 
+es.indices.create(index=ELASTIC_INDEX, body=mappings, ignore=400)
+
 def index_data(file):
     with open(file) as f:
         data = json.load(f)
         for a in data['articles']:
             try: 
+                if(a['date'] == ''): 
+                    continue
                 a['timestamp'] = datetime.strptime(a['date'], '%a %b  %d %H:%M:%S %Y') + timedelta(hours=-8)
+                if a['ip'] == 'None': a['ip'] = '127.0.0.1'
+                a['geoip'] = geolite2.lookup(a['ip'])
+                if a['geoip'] is not None:
+                    a['geoip'] = a['geoip'].get_info_dict()
+                    a['geo_location'] = {'lat': a['geoip']['location']['latitude'], 'lon': a['geoip']['location']['longitude']}
                 res = es.index(index=ELASTIC_INDEX, id=a['article_id'], body=a)
             except Exception as e: 
                 print(a['article_id'])
                 print(e)
 
 doc = {
-    'author': 'kimchy',
-    'content': 'Elasticsearch: cool. bonsai cool.',
+    'author': '_',
+    'content': 'Sample data to make sure elastic search is ready',
     'timestamp': datetime.now() + timedelta(hours=-8),
 }
 
