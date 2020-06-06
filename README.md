@@ -1,5 +1,9 @@
 # ptt-crawler
 
+## Environment
+
+Python2
+
 ## Installation
 
 ```sh
