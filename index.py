@@ -29,11 +29,13 @@ def index_data(file):
                 if(a['date'] == ''): 
                     continue
                 a['timestamp'] = datetime.strptime(a['date'], '%a %b  %d %H:%M:%S %Y') + timedelta(hours=-8)
+                a['content_length'] = len(a['content'])
                 if a['ip'] == 'None': a['ip'] = '127.0.0.1'
                 a['geoip'] = geolite2.lookup(a['ip'])
                 if a['geoip'] is not None:
                     a['geoip'] = a['geoip'].get_info_dict()
                     a['geo_location'] = {'lat': a['geoip']['location']['latitude'], 'lon': a['geoip']['location']['longitude']}
+                    del a['geoip']
                 res = es.index(index=ELASTIC_INDEX, id=a['article_id'], body=a)
             except Exception as e: 
                 print(a['article_id'])
@@ -49,9 +51,9 @@ res = es.index(index=ELASTIC_INDEX, id=1, body=doc)
 
 for file in glob.glob('./*.json'):
     try: 
+        print('Processing ' + file)
         index_data(file)
     except Exception as e: 
-        print(file)
         print(e)
 
 res = es.get(index=ELASTIC_INDEX, id=1)
